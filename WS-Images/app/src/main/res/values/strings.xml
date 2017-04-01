@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">WS-Images</string>
+    <string name="hint_consultar">Consultar</string>
+    <string name="hint_id">Id Estudiante</string>
+    <string name="property_nombre">Nombre</string>
+    <string name="property_apellido">Apellido</string>
+    <string name="property_genero">Genero</string>
+    <string name="property_imagen">Imagen</string>
+    <string name="seleccionar_imagen">Seleccionar Imagen</string>
+    <string name="hint_insertar">Agregar Estudiante</string>
+    <string name="descargar">Para obtener un Estudiante por su ID</string>
+    <string name="cargar">Para agregar un Estudiante</string>
+</resources>
