@@ -1,5 +1,6 @@
 package co.edu.udea.compumovil.ws_images;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -8,19 +9,23 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
+///import android.support.annotation.RequiresAp;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 
@@ -29,6 +34,8 @@ import org.json.JSONObject;
 
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
@@ -48,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     /*private Button btn_consultar;
     private Button btn_selecc_imagen;
     private Button btn_agregar;*/
+    private EditText txtId;
     private EditText txtNombre;
     private EditText txtApellidos;
     private EditText txtGenero;
@@ -69,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
         /*btn_consultar = (Button) findViewById(R.id.btn_cunsultar);
         btn_selecc_imagen = (Button) findViewById(R.id.btn_seleccionar);
         btn_agregar = (Button) findViewById(R.id.btn_agregar);*/
+        txtId = (EditText) findViewById(R.id.txt_id);
+        txtNombre = (EditText) findViewById(R.id.txt_nombre);
+        txtApellidos = (EditText) findViewById(R.id.txt_apellido);
+        txtGenero = (EditText) findViewById(R.id.txt_genero);
         lblId = (TextView) findViewById(R.id.lbl_id);
         lblNombre = (TextView) findViewById(R.id.lbl_nombre);
         lblApellido = (TextView) findViewById(R.id.lbl_apellido);
@@ -84,7 +96,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+
+    @TargetApi(Build.VERSION_CODES.M)
     public void onClickButton(View v){
         switch (v.getId()){
             case R.id.btn_cunsultar:
@@ -118,7 +131,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void obtenerEstudiante() {
-        String url = "http://studentapp-mraulio10785903.codeanyapp.com:3000/api/Students/1";
+        String id_Student = txtId.getText().toString();
+        if ("".equals(id_Student)){
+            Toast.makeText(this, "Ingrese un Id", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String url = "http://192.168.0.34:3000/api/Students/"+id_Student;
+        final String url_container = "http://192.168.0.34:3000/api/Containers/all/download/";
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.GET,
                 url, null,
@@ -132,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                             lblApellido.setText(student.getLastname());
 
                             Glide.with(MainActivity.this)
-                                .load(student.getPhoto())
+                                .load(url_container+student.getId()+student.getPhoto())
                                 .into(img_mostrar);
                     }
                 },
@@ -140,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(getApplicationContext(), "Error consultando información", Toast.LENGTH_SHORT).show();
+                        Log.d("nada2",error.getMessage());
                     }
                 }
         );
@@ -147,8 +167,98 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void agregarEstudiante() {
+        String url = "http://192.168.0.34:3000/api/Students";
+
+
+        //url = "http://httpbin.org/post";
+        StringRequest postRequest = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>()
+                {
+                    @Override
+                    public void onResponse(String response) {
+                        lblApellido.setText(response);
+                        //Suponiendo que salga todo bien
+                        Student student = new Gson().fromJson(response, Student.class);
+                        String url = "http://192.168.0.34:3000/api/Containers/all/upload";
+                        String nombre = student.getId()+student.getPhoto();
+                        sendImage(url,nombre);
+                    }
+                },
+                new Response.ErrorListener()
+                {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getApplicationContext(), "Error al crear el Student", Toast.LENGTH_SHORT).show();
+                        Log.d("nada",error.getMessage());
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams()
+            {
+                Map<String, String>  params = new HashMap<String, String>();
+                params.put("firstname", txtNombre.getText().toString());
+                params.put("lastname", txtApellidos.getText().toString());
+                params.put("gender", txtGenero.getText().toString());
+                params.put("photo", "img.jpg");
+
+                return params;
+            }
+        };
+        VolleySingleton.getInstance(this).addToRequestQueue(postRequest);
+        //url = "http://192.168.0.34:3000/api/Containers/all/upload";
+        //sendImage(url,nombre);
+
+
 
     }
+
+    private void sendImage(String url, final String nameImage) {
+
+        //String url = "https://www.fusemobiledevelopment.com/AlertZone/Services/api/v1/user/profilepicture";
+
+        VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(Request.Method.POST, url, new Response.Listener<NetworkResponse>() {
+            @Override
+            public void onResponse(NetworkResponse response) {
+                String resultResponse = new String(response.data);
+                lblNombre.setText(resultResponse);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Error subiendo la imagen", Toast.LENGTH_SHORT).show();
+                Log.d("nada3", error.getMessage());
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+//                params.put("api_token", "gh659gjhvdyudo973823tt9gvjf7i6ric75r76");
+                return params;
+            }
+
+            @Override
+            protected Map<String, DataPart> getByteData() {
+                Map<String, DataPart> params = new HashMap<>();
+                // file name could found file base or direct access from real path
+                // for now just get bitmap data from ImageView
+                params.put("image", new DataPart(nameImage, imagenSeleccionada, "image/jpeg"));
+                //params.put("cover", new DataPart("file_cover.jpg", AppHelper.getFileDataFromDrawable(getBaseContext(), mCoverImage.getDrawable()), "image/jpeg"));
+
+                return params;
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<>();
+                //headers.put("SessionId", mSessionId);
+                return headers;
+            }
+        };
+        VolleySingleton.getInstance(getBaseContext()).addToRequestQueue(multipartRequest);
+    }
+
 
     private void seleccionarImagen() {
         Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
