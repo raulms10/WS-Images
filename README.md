@@ -1,5 +1,9 @@
 # WS-Images
-Pantallazos/: Capturas del ejemplo
-Ws-Image/s: Código de aplicación en Android
-StudentApp/: Código del Servidor
-table.sql: Srcipt usado para definir la(s) tablas en la base de datos
+
+> **Pantallazos/**: Capturas del ejemplo
+
+> **StudentApp/**: Código del Servidor
+
+> **Ws-Images/**: Código de aplicación en Android
+
+> **table.sql**: Srcipt usado para definir la(s) tablas en la base de datos
