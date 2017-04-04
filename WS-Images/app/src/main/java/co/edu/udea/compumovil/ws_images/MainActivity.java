@@ -50,11 +50,28 @@ public class MainActivity extends AppCompatActivity {
     private final String STR_DENEGADO = "DENEGADO";
     private final String STR_GALERIA = "Galeria";
     private final String STR_INTERNET = "Internet";
-    private final String STR_ESTADO = "El permiso de"; //Alamacenará "Estado del permiso:"
+    private final String STR_ESTADO = "El permiso de";
+    private final String HOST_IP = "http://192.168.0.34"; //Cuando se trabaja con Servidor
+    private final String HOST_CODE = "http://studentapp-mraulio10785903.codeanyapp.com"; //Con CodeAnyWhere
 
-    /*private Button btn_consultar;
-    private Button btn_selecc_imagen;
-    private Button btn_agregar;*/
+    /*
+        Para ambos casos CodeAnyWhere o Local el complemento es el mismo
+     */
+    private final String URL_STUDENTS_COMPLEMENTO = ":3000/api/Students";
+    private final String URL_CONTAINER_DOWN_COMPLEMENTO = ":3000/api/Containers/all/download/";
+    private final String URL_CONTAINER_UP_COMPLEMENTO = ":3000/api/Containers/all/upload";
+
+    /* Si se trabaja local se quita comentario de estas lineas y se comenta las de CodeAnyWhere
+    private final String URL_STUDENTS = HOST_CODE.concat(URL_STUDENTS_COMPLEMENTO);
+    private final String URL_CONTAINER_DOWN = HOST_CODE.concat(URL_CONTAINER_DOWN_COMPLEMENTO);
+    private final String URL_CONTAINER_UP = HOST_CODE.concat(URL_CONTAINER_UP_COMPLEMENTO);
+    */
+    /* Si se trabaja con CondeAnyWhere*/
+    private final String URL_STUDENTS = HOST_CODE.concat(URL_STUDENTS_COMPLEMENTO);
+    private final String URL_CONTAINER_DOWN = HOST_CODE.concat(URL_CONTAINER_DOWN_COMPLEMENTO);
+    private final String URL_CONTAINER_UP = HOST_CODE.concat(URL_CONTAINER_UP_COMPLEMENTO);
+
+
     private EditText txtId;
     private EditText txtNombre;
     private EditText txtApellidos;
@@ -74,9 +91,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /*btn_consultar = (Button) findViewById(R.id.btn_cunsultar);
-        btn_selecc_imagen = (Button) findViewById(R.id.btn_seleccionar);
-        btn_agregar = (Button) findViewById(R.id.btn_agregar);*/
         txtId = (EditText) findViewById(R.id.txt_id);
         txtNombre = (EditText) findViewById(R.id.txt_nombre);
         txtApellidos = (EditText) findViewById(R.id.txt_apellido);
@@ -89,12 +103,11 @@ public class MainActivity extends AppCompatActivity {
         img_mostrar = (ImageView) findViewById(R.id.img_mostrar);
 
         if(verificarPermisoInternet() || verificarPermisoGaleria()) //verificamos los permisos y actualizamos el Textview del estado
-            Toast.makeText(this, STR_ESTADO+" "+STR_PERMITIDO, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, STR_ESTADO+" "+STR_INTERNET+" "+STR_PERMITIDO, Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(this, STR_ESTADO+" "+STR_DENEGADO, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, STR_ESTADO+" "+STR_INTERNET+" "+STR_DENEGADO, Toast.LENGTH_SHORT).show();
 
     }
-
 
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -104,18 +117,15 @@ public class MainActivity extends AppCompatActivity {
                 if(verificarPermisoInternet()) { //verificar los permisos
                     obtenerEstudiante();
                     Toast.makeText(this,"Consultando",Toast.LENGTH_SHORT).show();
-                    //Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI); //Creamos un Intent para abrir los contactos
-                    //startActivityForResult(intent, OPEN_CONTACT); //Lanzamos el Intent y se espera a que se seleccione un contacto
-                }else
-                    requestPermissions(new String[]{INTERNET}, MY_PERMISSIONS_INTERNET); //Solicitamos los permisos para abrir los contactos
-
+                  }else
+                    requestPermissions(new String[]{INTERNET}, MY_PERMISSIONS_INTERNET); //Solicitamos los permisos para el internet
                 break;
             case R.id.btn_seleccionar:
                 if(verificarPermisoGaleria()) { //verificar los permisos
                     seleccionarImagen();
                     //Toast.makeText(this,"Selecionando",Toast.LENGTH_SHORT).show();
                 }else
-                    requestPermissions(new String[]{READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_GALERIA); //Solicitamos los permisos para abrir los contactos
+                    requestPermissions(new String[]{READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_GALERIA); //Solicitamos los permisos para abrir la galeria
 
                 break;
             case R.id.btn_agregar:
@@ -123,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                     agregarEstudiante();
                     Toast.makeText(this, "Agreando", Toast.LENGTH_SHORT).show();
                 }else
-                    requestPermissions(new String[]{INTERNET}, MY_PERMISSIONS_INTERNET); //Solicitamos los permisos para abrir los contactos
+                    requestPermissions(new String[]{INTERNET}, MY_PERMISSIONS_INTERNET); //Solicitamos los permisos para el internet
 
         break;
         }
@@ -136,22 +146,22 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Ingrese un Id", Toast.LENGTH_SHORT).show();
             return;
         }
-        String url = "http://192.168.0.34:3000/api/Students/"+id_Student;
-        final String url_container = "http://192.168.0.34:3000/api/Containers/all/download/";
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.GET,
-                url, null,
+                URL_STUDENTS.concat("/").concat(id_Student), null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response){
                             Student student = new Gson().fromJson(response.toString(), Student.class);
 
-                            lblId.setText(""+student.getId());
+                            lblId.setText(String.valueOf(student.getId()));
                             lblNombre.setText(student.getFirstname());
                             lblApellido.setText(student.getLastname());
+                            lblGenero.setText(student.getGender());
 
                             Glide.with(MainActivity.this)
-                                .load(url_container+student.getId()+student.getPhoto())
+                                .load(URL_CONTAINER_DOWN.concat(String.valueOf(student.getId())).concat(student.getPhoto()))
                                 .into(img_mostrar);
                     }
                 },
@@ -159,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(getApplicationContext(), "Error consultando información", Toast.LENGTH_SHORT).show();
-                        Log.d("nada2",error.getMessage());
+                        //Log.d("nada2",error.getMessage());
                     }
                 }
         );
@@ -167,21 +177,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void agregarEstudiante() {
-        String url = "http://192.168.0.34:3000/api/Students";
-
-
-        //url = "http://httpbin.org/post";
-        StringRequest postRequest = new StringRequest(Request.Method.POST, url,
+        StringRequest postRequest = new StringRequest(Request.Method.POST, URL_STUDENTS,
                 new Response.Listener<String>()
                 {
                     @Override
                     public void onResponse(String response) {
-                        lblApellido.setText(response);
+                        //lblApellido.setText(response);
+                        /*
+                            Una vez agregado el Estudiante con éxito procedemos a cargar la imagen
+                         */
                         //Suponiendo que salga todo bien
+
                         Student student = new Gson().fromJson(response, Student.class);
-                        String url = "http://192.168.0.34:3000/api/Containers/all/upload";
-                        String nombre = student.getId()+student.getPhoto();
-                        sendImage(url,nombre);
+
+                        String nombre = student.getId()+student.getPhoto(); //Nommbre de la imagen
+                        sendImage(URL_CONTAINER_UP,nombre); //Subimos la imagen
                     }
                 },
                 new Response.ErrorListener()
@@ -189,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(getApplicationContext(), "Error al crear el Student", Toast.LENGTH_SHORT).show();
-                        Log.d("nada",error.getMessage());
+                        //Log.d("nada",error.getMessage());
                     }
                 }
         ) {
@@ -200,22 +210,15 @@ public class MainActivity extends AppCompatActivity {
                 params.put("firstname", txtNombre.getText().toString());
                 params.put("lastname", txtApellidos.getText().toString());
                 params.put("gender", txtGenero.getText().toString());
-                params.put("photo", "img.jpg");
+                params.put("photo", "img.jpg"); //Siguiendo el formato que de definió, también puede ser "img.png"
 
                 return params;
             }
         };
         VolleySingleton.getInstance(this).addToRequestQueue(postRequest);
-        //url = "http://192.168.0.34:3000/api/Containers/all/upload";
-        //sendImage(url,nombre);
-
-
-
     }
 
     private void sendImage(String url, final String nameImage) {
-
-        //String url = "https://www.fusemobiledevelopment.com/AlertZone/Services/api/v1/user/profilepicture";
 
         VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(Request.Method.POST, url, new Response.Listener<NetworkResponse>() {
             @Override
@@ -228,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(), "Error subiendo la imagen", Toast.LENGTH_SHORT).show();
-                Log.d("nada3", error.getMessage());
+                //Log.d("nada3", error.getMessage());
             }
         }) {
             @Override
