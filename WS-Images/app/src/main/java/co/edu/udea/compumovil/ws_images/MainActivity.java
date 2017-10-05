@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private final String STR_GALERIA = "Galeria";
     private final String STR_INTERNET = "Internet";
     private final String STR_ESTADO = "El permiso de";
-    private final String HOST_IP = "http://192.168.0.34"; //Cuando se trabaja con Servidor
+    private final String HOST_IP = "http://192.168.194.4"; //Cuando se trabaja con Servidor
     private final String HOST_CODE = "http://studentapp-mraulio10785903.codeanyapp.com"; //Con CodeAnyWhere
 
     /*
@@ -61,15 +61,15 @@ public class MainActivity extends AppCompatActivity {
     private final String URL_CONTAINER_DOWN_COMPLEMENTO = ":3000/api/Containers/all/download/";
     private final String URL_CONTAINER_UP_COMPLEMENTO = ":3000/api/Containers/all/upload";
 
-    /* Si se trabaja local se quita comentario de estas lineas y se comenta las de CodeAnyWhere
+    //Si se trabaja local se quita comentario de estas lineas y se comenta las de CodeAnyWhere
     private final String URL_STUDENTS = HOST_IP.concat(URL_STUDENTS_COMPLEMENTO);
     private final String URL_CONTAINER_DOWN = HOST_IP.concat(URL_CONTAINER_DOWN_COMPLEMENTO);
     private final String URL_CONTAINER_UP = HOST_IP.concat(URL_CONTAINER_UP_COMPLEMENTO);
-    */
-    /* Si se trabaja con CondeAnyWhere*/
+
+    /* Si se trabaja con CondeAnyWhere
     private final String URL_STUDENTS = HOST_CODE.concat(URL_STUDENTS_COMPLEMENTO);
     private final String URL_CONTAINER_DOWN = HOST_CODE.concat(URL_CONTAINER_DOWN_COMPLEMENTO);
-    private final String URL_CONTAINER_UP = HOST_CODE.concat(URL_CONTAINER_UP_COMPLEMENTO);
+    private final String URL_CONTAINER_UP = HOST_CODE.concat(URL_CONTAINER_UP_COMPLEMENTO);*/
 
 
     private EditText txtId;
